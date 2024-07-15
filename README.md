@@ -1,0 +1,2 @@
+# TrySpotifyAPI_may
+SpotifyAPIのテストプロジェクトです。
