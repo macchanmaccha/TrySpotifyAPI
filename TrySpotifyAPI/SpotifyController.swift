@@ -36,13 +36,13 @@ final class SpotifyController: NSObject, ObservableObject {
     
     override init() {
         super.init()
-        /*connectCancellable = */NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
+         var connectCancellable = NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)
             .receive(on: DispatchQueue.main)
             .sink { _ in
                 self.connect()
             } // .stink
         
-        /*disconnectCancellable = */NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
+        var disconnectCancellable = NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)
             .receive(on: DispatchQueue.main)
             .sink { _ in
                 self.disconnect()
@@ -52,6 +52,7 @@ final class SpotifyController: NSObject, ObservableObject {
     func connect() {
         if let _ = self.appRemote.connectionParameters.accessToken {
             appRemote.connect()
+            print("⭐️接続を開始します")
         } // if let
     } // func connect()
     

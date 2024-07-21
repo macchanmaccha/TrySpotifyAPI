@@ -10,10 +10,10 @@
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>com.spotify.iOS-SDK-Quick-Start</string>
+			<string>JankenJanken.TrySpotifyAPI</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>spotify-ios-quick-start</string>
+				<string>TrySpotifyAPI</string>
 			</array>
 		</dict>
 	</array>

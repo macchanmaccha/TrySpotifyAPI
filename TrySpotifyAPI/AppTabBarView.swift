@@ -19,6 +19,7 @@ struct AppTabBarView: View {
             Text("Welcom to Spotify")
         } // Button
         .onOpenURL { url in
+            print("⭐️URLを受信しました:\(url)")
             spotifyController.setAccessToken(from: url)
         } // .onOpenURL
         .environmentObject(spotifyController)
