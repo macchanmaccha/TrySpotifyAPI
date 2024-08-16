@@ -11,7 +11,7 @@ import SwiftUI
 struct TrySpotifyAPIApp: App {
     var body: some Scene {
         WindowGroup {
-            AppTabBarView()
+            ContentView()
         }
     }
 }
