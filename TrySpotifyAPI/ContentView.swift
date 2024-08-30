@@ -9,73 +9,69 @@ import SwiftUI
 import AVFoundation
 
 struct ContentView: View {
-    var spotifyAuthManager = SpotifyAuthManager()
-    // トラック情報を保持する状態変数
-    @State private var trackInfo: TrackInfo?
-    // オーディオプレイヤーのインスタンスを保持する状態変数
+    // SpotifyManagerインスタンス
+    @StateObject private var spotifyManager = SpotifyManager()
+    // AVPlayerインスタンス
     @State private var player: AVPlayer?
+    // ロード状態を管理する変数
+    @State private var isLoading = false
+    // サンプルは銀河鉄道999 https://open.spotify.com/intl-ja/track/2Oded9hR3DKNdkn9LUOkjb?si=286e8c239abe4c14
+    // 任意のトラックID
+    let trackId = "2Oded9hR3DKNdkn9LUOkjb"
     var body: some View {
         VStack {
-            // トラック状態が存在する場合
-            if let trackInfo = trackInfo {
-                // トラック名を表示
-                Text("Track Name: \(trackInfo.name)")
-                // プレビューURLが存在し、正しいURLに変換できる場合
-                if let previewURL = trackInfo.preview_url, let url = URL(string: previewURL) {
-                    // ボタン
-                    Button("Play Preview") {
-                        // プレイヤーにプレビューURLをセット
-                        player = AVPlayer(url: url)
-                        // プレイヤー再生
-                        player?.play()
-                    }
-                } else {
-                    // プレビューが再生できない時のメッセージ
-                    Text("Preview not available")
-                }
-                // トラック情報が存在しない場合
+            // isLoadingがtrueなら
+            if isLoading {
+                // ローディング中
+                ProgressView("Loading...")
+                // falseなら
             } else {
-                // ボタン
-                Button("Fetch Track Info") {
-                    // トラック情報を取得
-                    fetchTrackInfo()
-                }
-            }
-        }
-        .padding()
-    }
-    
-    /// トラック情報をSpotify APIから取得する関数
-    func fetchTrackInfo() {
-        // リクエストするURLを設定（トラックIDを指定）
-        guard let url = URL(string: "https://api.spotify.com/v1/tracks/2TpxZ7JUBn3uw46aR7qd6V") else {
-            print("Invalid URL")
-            return
-        }
-        // URLリクエストの作成
-        var request = URLRequest(url: url)
-        // HTTPメソッドをGETに設定
-        request.httpMethod = "GET"
-        // リクエストヘッダーにアクセストークンを追加
-        request.setValue("Bearer \(String(describing: spotifyAuthManager.accessToken))", forHTTPHeaderField: "Authorization")
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            // エラーチェック
-            if let error = error {
-                // エラーが発生した場合のログ出力
-                print("Error: \(error.localizedDescription)")
-                return
-            }
-            // 取得したデータをログ出力（デバッグ用）
-            if let data = data {
-                if let jsonString = String(data: data, encoding: .utf8) {
-                    print("Response data: \(jsonString)")
-                }
-            }
-            // データタスクを開始
-        }.resume()
-    }
-}
+                // ボタン表示
+                Button(action: {
+                    // プレビュー再生
+                    playPreview()
+                }) {
+                    Text("プレビューを再生")
+                } // Button
+            } // if
+        } // VStack
+        .onAppear {
+            // fetchAccessTokenを呼び出す
+            spotifyManager.fetchAccessToken { succses in
+                // アクセストークンの取得がsuccessの場合
+                if succses {
+                    // 特になし
+                    // アクセストークンの取得がfalseの場合
+                } else {
+                    // アクセストークン取得失敗とプリント
+                    print("アクセストークン取得失敗")
+                }//  if succses
+            } // spotifyManager.fetchAccessToken { succses in
+        } // .onAppear
+    } // body
+    // プレビュー再生
+    func playPreview() {
+        // ローディングはtrue
+        isLoading = true
+        // fetchPreviewURLを呼びだす
+        // trackIDのpreviewUrlを取得
+        spotifyManager.fetchPreviewURL(for: trackId) { previewUrl in
+            // ローディングはfalse
+            isLoading = false
+            // urlをアンラップ　nilでないとき
+            if let url = previewUrl {
+                // urlをAVPlayerにセット
+                player = AVPlayer(url: URL(string: url)!)
+                // プレビュー再生
+                player?.play()
+                // nilのとき
+            } else {
+                // 失敗のプリント
+                print("previewUrlの取得に失敗")
+            } // if let url = previewUrl
+        } // spotifyManager.fetchPreviewURL(for: trackId)
+    } // func playPreview()
+} // ContentView
 
 
 #Preview {

@@ -8,6 +8,7 @@
 import SwiftUI
 
 @main
+
 struct TrySpotifyAPIApp: App {
     var body: some Scene {
         WindowGroup {
