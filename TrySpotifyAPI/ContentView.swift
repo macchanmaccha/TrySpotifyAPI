@@ -55,21 +55,22 @@ struct ContentView: View {
         isLoading = true
         // fetchPreviewURLを呼びだす
         // trackIDのpreviewUrlを取得
-        spotifyManager.fetchPreviewURL(for: trackId) { previewUrl in
-            // ローディングはfalse
-            isLoading = false
-            // urlをアンラップ　nilでないとき
-            if let url = previewUrl {
+        Task {
+            do {
+                let urlString = try await spotifyManager.fetchPreviewURL(for: trackId)
                 // urlをAVPlayerにセット
-                player = AVPlayer(url: URL(string: url)!)
+                player = AVPlayer(url: URL(string: urlString!)!)
+                // ローディングはfalse
+                isLoading = false
                 // プレビュー再生
                 player?.play()
-                // nilのとき
-            } else {
+            } catch {
+                // ローディングはfalse
+                isLoading = false
                 // 失敗のプリント
                 print("previewUrlの取得に失敗")
-            } // if let url = previewUrl
-        } // spotifyManager.fetchPreviewURL(for: trackId)
+            }
+        } // Task
     } // func playPreview()
 } // ContentView
 
