@@ -36,17 +36,24 @@ struct ContentView: View {
             } // if
         } // VStack
         .onAppear {
-            // fetchAccessTokenを呼び出す
-            spotifyManager.fetchAccessToken { succses in
-                // アクセストークンの取得がsuccessの場合
-                if succses {
-                    // 特になし
-                    // アクセストークンの取得がfalseの場合
-                } else {
-                    // アクセストークン取得失敗とプリント
-                    print("アクセストークン取得失敗")
-                }//  if succses
-            } // spotifyManager.fetchAccessToken { succses in
+            Task {
+                do {
+                    if try await spotifyManager.fetchAccessToken() {
+                        if  let urlString = try await spotifyManager.fetchPreviewURL(for: trackId) {
+                            // urlをAVPlayerにセット
+                            player = AVPlayer(url: URL(string: urlString)!)
+                            // ローディングはfalse
+                            isLoading = false
+                        }
+                        
+                    } // if try await spotifyManager.fetchAccessToken()
+                } catch {
+                    // ローディングはfalse
+                    isLoading = false
+                    // 失敗のプリント
+                    print("previewUrlの取得に失敗")
+                }
+            } // Task
         } // .onAppear
     } // body
     // プレビュー再生
@@ -57,19 +64,17 @@ struct ContentView: View {
         // trackIDのpreviewUrlを取得
         Task {
             do {
-                let urlString = try await spotifyManager.fetchPreviewURL(for: trackId)
-                // urlをAVPlayerにセット
-                player = AVPlayer(url: URL(string: urlString!)!)
-                // ローディングはfalse
-                isLoading = false
-                // プレビュー再生
-                player?.play()
+                if let previewURL = try await spotifyManager.fetchPreviewURL(for: trackId) {
+                    // urlをAVPlayerにセット
+                    player = AVPlayer(url: URL(string: previewURL)!)
+                    // プレビュー再生
+                    player?.play()
+                }
             } catch {
-                // ローディングはfalse
-                isLoading = false
                 // 失敗のプリント
                 print("previewUrlの取得に失敗")
             }
+            isLoading = false
         } // Task
     } // func playPreview()
 } // ContentView
