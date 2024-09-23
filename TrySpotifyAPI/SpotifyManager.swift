@@ -51,10 +51,14 @@ class SpotifyManager: ObservableObject {
             await MainActor.run {
                 // トークンをアクセストークンに代入
                 self.accessToken = token
+                print("⭐️アクセストークンはこちら⭐️\n\(accessToken!)")
+                print("⭐️トークンタイプはこちら⭐️\n\(jsonResponse["token_type"]!)")
+                print("⭐️有効期限はこちら⭐️\n\(jsonResponse["expires_in"]!)秒")
             }
             return true
+        } else {
+            return false
         } // if let
-        return false
     } // func fetchAccessToken
     func fetchPreviewURL(for trackId: String) async throws -> String? {
         guard let token = accessToken else {
