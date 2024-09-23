@@ -63,7 +63,9 @@ class SpotifyManager: ObservableObject {
             return nil
         } // guard let
         // 楽曲のID
-        let url = URL(string: "https://api.spotify.com/v1/tracks/\(trackId)")!
+        guard let url = URL(string: "https://api.spotify.com/v1/tracks/\(trackId)") else {
+            return nil
+        }
         // URLリクエスト
         var request = URLRequest(url: url)
         // APIリクエストをする

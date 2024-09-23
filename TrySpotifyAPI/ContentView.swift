@@ -45,7 +45,6 @@ struct ContentView: View {
                             // ローディングはfalse
                             isLoading = false
                         }
-                        
                     } // if try await spotifyManager.fetchAccessToken()
                 } catch {
                     // ローディングはfalse
