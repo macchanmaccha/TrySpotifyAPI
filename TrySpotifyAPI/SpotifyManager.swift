@@ -12,6 +12,7 @@ class SpotifyManager: ObservableObject {
     @Published var accessToken: String?
     // リフレッシュトークン
     @Published var refreshToken: String?
+    var time: Int?
     // クライアントID
     let clientId = "cbec81689a284bc097930f139199ac2e"
     //　クライアントシークレット

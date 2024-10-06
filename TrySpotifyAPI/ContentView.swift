@@ -38,13 +38,17 @@ struct ContentView: View {
         .onAppear {
             Task {
                 do {
+                    // アクセストークンが有効であれば
                     if try await spotifyManager.fetchAccessToken() {
-                        if  let urlString = try await spotifyManager.fetchPreviewURL(for: trackId) {
+                        print("アクセストークンは有効です")
+                        if let urlString = try await spotifyManager.fetchPreviewURL(for: trackId) {
                             // urlをAVPlayerにセット
                             player = AVPlayer(url: URL(string: urlString)!)
                             // ローディングはfalse
                             isLoading = false
                         }
+                    } else {
+                        print("アクセストークンが無効です")
                     } // if try await spotifyManager.fetchAccessToken()
                 } catch {
                     // ローディングはfalse
@@ -63,11 +67,17 @@ struct ContentView: View {
         // trackIDのpreviewUrlを取得
         Task {
             do {
-                if let previewURL = try await spotifyManager.fetchPreviewURL(for: trackId) {
-                    // urlをAVPlayerにセット
-                    player = AVPlayer(url: URL(string: previewURL)!)
-                    // プレビュー再生
-                    player?.play()
+                // アクセストークンが有効であれば
+                if try await spotifyManager.fetchAccessToken() {
+                    print("アクセストークンは有効です")
+                    if let previewURL = try await spotifyManager.fetchPreviewURL(for: trackId) {
+                        // urlをAVPlayerにセット
+                        player = AVPlayer(url: URL(string: previewURL)!)
+                        // プレビュー再生
+                        player?.play()
+                    }
+                } else {
+                    print("アクセストークンが無効です")
                 }
             } catch {
                 // 失敗のプリント
