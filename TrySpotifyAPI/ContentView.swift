@@ -21,6 +21,9 @@ struct ContentView: View {
     // 任意のトラックID
     let trackId = "2Oded9hR3DKNdkn9LUOkjb"
     let now = Date()
+    // 通知の名前
+    let notificationName = Notification.Name("notificationName")
+    
     var body: some View {
         VStack {
             // isLoadingがtrueなら
@@ -57,6 +60,12 @@ struct ContentView: View {
                 }
             } // Task
         } // .onAppear
+        // 再生完了（音量0）の通知を受け取る
+        .onReceive(NotificationCenter.default.publisher(for: notificationName)) { _ in
+            print("音量が0になりました。再度再生をします")
+            // 音量が0になったら再生
+            playPreview()
+        } // .onReceive
     } // body
     // プレビュー再生
     func playPreview() {
@@ -92,7 +101,6 @@ struct ContentView: View {
             isLoading = false
         } // Task
     } // func playPreview()
-
     // 自然に聞こえるフェードインフェードアウト
     func fadeIn(player: AVPlayer, duration: TimeInterval) {
         let fadeDuration = duration
@@ -131,9 +139,11 @@ struct ContentView: View {
                 player.volume = 0.0
                 player.pause()
                 timer.invalidate()
-            }
-        }
-    }
+                // 音量が0になったら通知を送信
+                NotificationCenter.default.post(name: notificationName, object: nil)
+            } // if currentStep
+        } // Timer
+    } // func fadeOut
 } // ContentView
 
 
