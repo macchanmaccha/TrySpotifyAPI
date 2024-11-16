@@ -99,7 +99,7 @@ class SpotifyManager: ObservableObject {
                 self.accessToken = token
                 // UserDefaultsに保存
                 UserDefaults.standard.set(token, forKey: "access_token")
-                // アクセストークンの有効期限を現在から1時間後（60秒後）に設定
+                // アクセストークンの有効期限を現在から1時間後（3600秒後）に設定
                 self.expirationDate = Date(timeInterval: TimeInterval(expiresIn), since: now)
                 // 更新は有効期限の5分前(300秒前)
                 self.updateDate = Date(timeInterval: -60 * 5, since: self.expirationDate!)

@@ -15,15 +15,22 @@ struct ContentView: View {
     @State private var player: AVPlayer?
     // ロード状態を管理する変数
     @State private var isLoading = false
-    // サンプルは銀河鉄道999 https://open.spotify.com/intl-ja/track/2Oded9hR3DKNdkn9LUOkjb?si=286e8c239abe4c14
+    // サンプルは銀河鉄道999
+    // https://open.spotify.com/intl-ja/track/2Oded9hR3DKNdkn9LUOkjb?si=286e8c239abe4c14
     // https://open.spotify.com/intl-ja/track/6MDfGuhAdrxkAMz9t0MM9M?si=f7e42876ac164688
     // https://open.spotify.com/intl-ja/track/3qvcbChw0dwMqk6BJkzIsR?si=a998fb409ab64bbd
     // 任意のトラックID
     let trackId = "2Oded9hR3DKNdkn9LUOkjb"
-    let now = Date()
     // 通知の名前
     let notificationName = Notification.Name("notificationName")
-    
+    // 初期値を1分とする
+    @State private var selectedTime = 1
+    // タイマー
+    @State private var timer: Timer?
+    // タイマーの終了時刻
+    @State private var endTime: Date?
+    // fadeOutを管理
+    @State var isFadeOut = false
     var body: some View {
         VStack {
             // isLoadingがtrueなら
@@ -32,14 +39,26 @@ struct ContentView: View {
                 ProgressView("Loading...")
                 // falseなら
             } else {
+                Picker("再生時間を選択", selection: $selectedTime) {
+                    Text("1分").tag(1)
+                    Text("3分").tag(3)
+                    Text("5分").tag(5)
+                    Text("10分").tag(10)
+                    Text("20分").tag(20)
+                    Text("30分").tag(30)
+                    Text("40分").tag(40)
+                    Text("50分").tag(50)
+                    Text("60分").tag(60)
+                }
+                .pickerStyle(MenuPickerStyle())
+                .frame(height: 150)
                 // ボタン表示
                 Button(action: {
                     // プレビュー再生
-                    playPreview()
+                    startPlayAndTimer()
                 }) {
                     Text("プレビューを再生")
                 } // Button
-                
             } // if
         } // VStack
         .onAppear {
@@ -63,10 +82,50 @@ struct ContentView: View {
         // 再生完了（音量0）の通知を受け取る
         .onReceive(NotificationCenter.default.publisher(for: notificationName)) { _ in
             print("音量が0になりました。再度再生をします")
-            // 音量が0になったら再生
-            playPreview()
+            // endTimeが存在し、endTimeが過去だったら
+            if let endTime = endTime, Date() >= endTime {
+            } else {
+                // タイマー終了5秒前の間にplayPreviewを実行しないする処理
+                // isFadeOutがtrueなら
+                if isFadeOut == true {
+                    // なにもしない
+                    return
+                    // それ以外なら
+                } else {
+                    // 音量が0になったら再生
+                    playPreview()
+                }
+            } // if let endTime...
         } // .onReceive
     } // body
+    
+    func startPlayAndTimer() {
+        // 終了時刻を計算
+        endTime = Date(timeInterval: TimeInterval(selectedTime * 60 - 5), since: Date())
+        // 再生を開始
+        playPreview()
+        // タイマーを開始
+        startTimer()
+        print("タイマーは\(endTime!)で終わり")
+    }
+    
+    func startTimer() {
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            print("タイマーは実行しています")
+            // endTimeが存在し、endTimeが過去だったら
+            if let endTime = endTime, Date() >= endTime {
+                print("endTimeは過去です")
+                // タイマーが終了したら再生を停止
+                stopTimer()
+                fadeOut(player: player!, duration: 5.0)
+            }
+        }
+    }
+    
+    func stopTimer() {
+        timer?.invalidate()
+        timer = nil
+    }
     // プレビュー再生
     func playPreview() {
         // ローディングはtrue
@@ -85,10 +144,15 @@ struct ContentView: View {
                         // フェードイン
                         fadeIn(player: player!, duration: 5.0)
                         // フェードアウト
-                        // 25秒後にフェードアウト
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
-                            // 5秒かけてフェードアウト
+                        // endTimeから5秒前は必ずフェードアウト
+                        if let endTime = endTime, Date() >= endTime - 5 {
                             fadeOut(player: player!, duration: 5.0)
+                        } else {
+                            // それ以外の場合は25秒後にフェードアウト
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
+                                // 5秒かけてフェードアウト
+                                fadeOut(player: player!, duration: 5.0)
+                            }
                         }
                     }
                 } else {
@@ -101,8 +165,13 @@ struct ContentView: View {
             isLoading = false
         } // Task
     } // func playPreview()
-    // 自然に聞こえるフェードインフェードアウト
+    // 自然に聞こえるフェードイン
     func fadeIn(player: AVPlayer, duration: TimeInterval) {
+        // もしisFadeOutがtrueになったら
+        if isFadeOut {
+            // フェードインしない
+            return
+        }
         let fadeDuration = duration
         // 100ミリ秒ごとに音量を変更
         let interval: TimeInterval = 0.1
@@ -122,7 +191,14 @@ struct ContentView: View {
             }
         }
     }
+    // 自然に聞こえるフェードアウト
     func fadeOut(player: AVPlayer, duration: TimeInterval) {
+        // フェードアウトしているとき
+        if isFadeOut == true {
+            // 何も処理しない
+            return
+        } // if isFadeOut...
+        isFadeOut = true
         let fadeDuration = duration
         let interval: TimeInterval = 0.1
         let totalSteps = Int(fadeDuration / interval)
@@ -139,6 +215,7 @@ struct ContentView: View {
                 player.volume = 0.0
                 player.pause()
                 timer.invalidate()
+                isFadeOut = false
                 // 音量が0になったら通知を送信
                 NotificationCenter.default.post(name: notificationName, object: nil)
             } // if currentStep
