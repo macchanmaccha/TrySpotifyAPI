@@ -24,7 +24,9 @@ struct ContentView: View {
     // 通知の名前
     let notificationName = Notification.Name("notificationName")
     // 初期値を1分とする
-    @State private var selectedTime = 1
+    @State private var selectedTime: Int = 1
+    // タイマーの表示
+    @State private var remainingSeconds: Int = 1
     // タイマー
     @State private var timer: Timer?
     // タイマーの終了時刻
@@ -52,6 +54,7 @@ struct ContentView: View {
                 }
                 .pickerStyle(MenuPickerStyle())
                 .frame(height: 150)
+                Text("\(remainingSeconds)秒")
                 // ボタン表示
                 Button(action: {
                     // プレビュー再生
@@ -62,6 +65,9 @@ struct ContentView: View {
             } // if
         } // VStack
         .onAppear {
+            // 分数を秒数に変換
+            remainingSeconds *= selectedTime * 60
+            print(remainingSeconds)
             Task {
                 do {
                     
@@ -111,6 +117,7 @@ struct ContentView: View {
     
     func startTimer() {
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            remainingSeconds -= 1
             print("タイマーは実行しています")
             // endTimeが存在し、endTimeが過去だったら
             if let endTime = endTime, Date() >= endTime {
