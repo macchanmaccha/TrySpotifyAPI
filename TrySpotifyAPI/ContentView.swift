@@ -65,9 +65,7 @@ struct ContentView: View {
             } // if
         } // VStack
         .onAppear {
-            // 分数を秒数に変換
-            remainingSeconds *= selectedTime * 60
-            print(remainingSeconds)
+            remainingSeconds = selectedTime * 60
             Task {
                 do {
                     
@@ -85,16 +83,18 @@ struct ContentView: View {
                 }
             } // Task
         } // .onAppear
+        .onChange(of: selectedTime) {
+            remainingSeconds = selectedTime * 60
+        }
         // 再生完了（音量0）の通知を受け取る
         .onReceive(NotificationCenter.default.publisher(for: notificationName)) { _ in
             print("音量が0になりました。再度再生をします")
             // endTimeが存在し、endTimeが過去だったら
             if let endTime = endTime, Date() >= endTime {
             } else {
-                // タイマー終了5秒前の間にplayPreviewを実行しないする処理
+                // タイマー終了5秒前の間にplayPreviewを実行しないようにする処理
                 // isFadeOutがtrueなら
                 if isFadeOut == true {
-                    // なにもしない
                     return
                     // それ以外なら
                 } else {
@@ -120,7 +120,7 @@ struct ContentView: View {
             remainingSeconds -= 1
             print("タイマーは実行しています")
             // endTimeが存在し、endTimeが過去だったら
-            if let endTime = endTime, Date() >= endTime {
+            if let endTime = endTime, Date() >= endTime + 5 {
                 print("endTimeは過去です")
                 // タイマーが終了したら再生を停止
                 stopTimer()
