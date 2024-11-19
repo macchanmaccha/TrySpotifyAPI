@@ -8,6 +8,19 @@
 import SwiftUI
 import AVFoundation
 
+// タイマーの状態を管理するextension
+extension SpotifyManager {
+    // 状態を管理する列挙体
+    enum State {
+        // 再生中
+        case playing
+        // 停止
+        case stopped
+        // 一時停止
+        case paused
+    }
+}
+
 struct ContentView: View {
     // SpotifyManagerインスタンス
     @StateObject private var spotifyManager = SpotifyManager()
@@ -55,9 +68,9 @@ struct ContentView: View {
                 .pickerStyle(MenuPickerStyle())
                 .frame(height: 150)
                 Text("\(remainingSeconds)秒")
-                // ボタン表示
+                // 再生とタイマー開始ボタン表示
                 Button(action: {
-                    // プレビュー再生
+                    // 再生とタイマー開始
                     startPlayAndTimer()
                 }) {
                     Text("プレビューを再生")
@@ -107,7 +120,7 @@ struct ContentView: View {
     
     func startPlayAndTimer() {
         // 終了時刻を計算
-        endTime = Date(timeInterval: TimeInterval(selectedTime * 60 - 5), since: Date())
+        endTime = Date(timeInterval: TimeInterval(selectedTime * 60), since: Date())
         // 再生を開始
         playPreview()
         // タイマーを開始
@@ -116,6 +129,8 @@ struct ContentView: View {
     }
     
     func startTimer() {
+        // 多重でタイマーを開始しないようにする
+        stopTimer()
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             remainingSeconds -= 1
             print("タイマーは実行しています")
@@ -229,7 +244,6 @@ struct ContentView: View {
         } // Timer
     } // func fadeOut
 } // ContentView
-
 
 #Preview {
     ContentView()
