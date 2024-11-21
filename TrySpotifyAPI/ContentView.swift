@@ -45,7 +45,9 @@ struct ContentView: View {
     // タイマーの終了時刻
     @State private var endTime: Date?
     // fadeOutを管理
-    @State var isFadeOut = false
+    @State private var isFadeOut = false
+    // タイマーの状態　初期は.stopped
+    @State private var state: SpotifyManager.State = .stopped
     var body: some View {
         VStack {
             // isLoadingがtrueなら
@@ -75,9 +77,24 @@ struct ContentView: View {
                 }) {
                     Text("プレビューを再生")
                 } // Button
+                // タイマーと再生停止ボタン表示
+                Button(action: {
+                    // 停止
+                    updateState(newState: .paused)
+                }) {
+                    Text("停止")
+                } // Button
+                // 再開ボタン表示
+                Button(action: {
+                    // 再開
+                    updateState(newState: .playing)
+                }) {
+                    Text("再開")
+                } // Button
             } // if
         } // VStack
         .onAppear {
+            stopTimer()
             remainingSeconds = selectedTime * 60
             Task {
                 do {
@@ -131,6 +148,8 @@ struct ContentView: View {
     func startTimer() {
         // 多重でタイマーを開始しないようにする
         stopTimer()
+        // 状態の更新(playing状態にする)
+        updateState(newState: .playing)
         timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
             remainingSeconds -= 1
             print("タイマーは実行しています")
@@ -147,6 +166,18 @@ struct ContentView: View {
     func stopTimer() {
         timer?.invalidate()
         timer = nil
+    }
+    
+    // 状態更新
+    func updateState(newState: SpotifyManager.State) {
+        if state == .playing && newState == .paused {
+            player?.pause()
+            stopTimer()
+        } else if state == .paused && newState == .playing {
+            player?.play()
+            startTimer()
+        }
+        state = newState
     }
     // プレビュー再生
     func playPreview() {
