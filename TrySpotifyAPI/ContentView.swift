@@ -38,12 +38,14 @@ struct ContentView: View {
     let notificationName = Notification.Name("notificationName")
     // 初期値を1分とする
     @State private var selectedTime: Int = 1
-    // タイマーの表示
-    @State private var remainingSeconds: Int = 1
-    // タイマー
-    @State private var timer: Timer?
-    // タイマーの終了時刻
+    // ユーザーが選択する時間のタイマー
+    @State private var selectedTimer: Timer?
+    // ユーザーが選択する時間のタイマーの終了時刻
     @State private var endTime: Date?
+    // 音再生のタイマー
+    @State private var soundTimer: Timer?
+    //
+    @State private var elapsedTime: Double = 0
     // fadeOutを管理
     @State private var isFadeOut = false
     // タイマーの状態　初期は.stopped
@@ -69,7 +71,7 @@ struct ContentView: View {
                 }
                 .pickerStyle(MenuPickerStyle())
                 .frame(height: 150)
-                Text("\(remainingSeconds)秒")
+                Text("\(Int(elapsedTime))秒")
                 // 再生とタイマー開始ボタン表示
                 Button(action: {
                     // 再生とタイマー開始
@@ -95,10 +97,9 @@ struct ContentView: View {
         } // VStack
         .onAppear {
             stopTimer()
-            remainingSeconds = selectedTime * 60
+            elapsedTime = Double(selectedTime * 60)
             Task {
                 do {
-                    
                     if let urlString = try await spotifyManager.fetchPreviewURL(for: trackId) {
                         // urlをAVPlayerにセット
                         player = AVPlayer(url: URL(string: urlString)!)
@@ -114,7 +115,7 @@ struct ContentView: View {
             } // Task
         } // .onAppear
         .onChange(of: selectedTime) {
-            remainingSeconds = selectedTime * 60
+            elapsedTime = Double(selectedTime * 60)
         }
         // 再生完了（音量0）の通知を受け取る
         .onReceive(NotificationCenter.default.publisher(for: notificationName)) { _ in
@@ -150,22 +151,30 @@ struct ContentView: View {
         stopTimer()
         // 状態の更新(playing状態にする)
         updateState(newState: .playing)
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            remainingSeconds -= 1
-            print("タイマーは実行しています")
+        // 0.1秒ずつ刻む
+        selectedTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            // 現在日時から終了時刻まで0.1ずつ刻む
+            elapsedTime = Date().timeIntervalSince(endTime!)
+            print(elapsedTime)
             // endTimeが存在し、endTimeが過去だったら
-            if let endTime = endTime, Date() >= endTime + 5 {
+            if let endTime = endTime, Date() >= endTime  {
                 print("endTimeは過去です")
                 // タイマーが終了したら再生を停止
                 stopTimer()
-                fadeOut(player: player!, duration: 5.0)
+                // フェードアウト
+                if let player = player {
+                    fadeOut(player: player, duration: 5.0)
+                } else {
+                    print("プレイヤーがnilです")
+                }
             }
         }
+            
     }
     
     func stopTimer() {
-        timer?.invalidate()
-        timer = nil
+        selectedTimer?.invalidate()
+        selectedTimer = nil
     }
     
     // 状態更新
@@ -201,11 +210,11 @@ struct ContentView: View {
                         if let endTime = endTime, Date() >= endTime - 5 {
                             fadeOut(player: player!, duration: 5.0)
                         } else {
-                            // それ以外の場合は25秒後にフェードアウト
+                            
                             DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
                                 // 5秒かけてフェードアウト
                                 fadeOut(player: player!, duration: 5.0)
-                            }
+                            } // DispatchQuere
                         }
                     }
                 } else {
