@@ -153,8 +153,10 @@ struct ContentView: View {
         updateState(newState: .playing)
         // 0.1秒ずつ刻む
         selectedTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            // 現在日時から終了時刻まで0.1ずつ刻む
-            elapsedTime = Date().timeIntervalSince(endTime!)
+//            // 現在日時から終了時刻まで0.1秒ずつ引いていく
+            if let endTime = endTime {
+                elapsedTime = endTime.timeIntervalSince(Date())
+            }
             print(elapsedTime)
             // endTimeが存在し、endTimeが過去だったら
             if let endTime = endTime, Date() >= endTime  {
