@@ -48,6 +48,12 @@ struct ContentView: View {
     @State private var elapsedTime: Double = 0
     // fadeOutを管理
     @State private var isFadeOut = false
+    // fadeInのタイマー
+    @State private var fadeInTimer: Timer?
+    // fadeOutのタイマー
+    @State private var fadeOutTimer: Timer?
+    // fadeOutを修了するタイマー
+    @State private var fadeOutEndTimer: Timer?
     // タイマーの状態　初期は.stopped
     @State private var state: SpotifyManager.State = .stopped
     var body: some View {
@@ -212,11 +218,14 @@ struct ContentView: View {
                         if let endTime = endTime, Date() >= endTime - 5 {
                             fadeOut(player: player!, duration: 5.0)
                         } else {
-                            
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
+                            fadeOutEndTimer = Timer.scheduledTimer(withTimeInterval: 25.0, repeats: false) { _ in
                                 // 5秒かけてフェードアウト
                                 fadeOut(player: player!, duration: 5.0)
-                            } // DispatchQuere
+                            }
+//                            DispatchQueue.main.asyncAfter(deadline: .now() + 25) {
+//                                // 5秒かけてフェードアウト
+//                                fadeOut(player: player!, duration: 5.0)
+//                            } // DispatchQuere
                         }
                     }
                 } else {
@@ -241,7 +250,7 @@ struct ContentView: View {
         let interval: TimeInterval = 0.1
         let totalSteps = Int(fadeDuration / interval)
         var currentStep = 0
-        Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+        fadeInTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
             if currentStep < totalSteps {
                 // 音量の変更を指数関数的に調整
                 let normalizedTime = Double(currentStep) / Double(totalSteps)
@@ -267,7 +276,7 @@ struct ContentView: View {
         let interval: TimeInterval = 0.1
         let totalSteps = Int(fadeDuration / interval)
         var currentStep = 0
-        Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+        fadeOutTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
             if currentStep < totalSteps {
                 // 音量の変更を指数関数的に調整
                 let normalizedTime = Double(currentStep) / Double(totalSteps)
