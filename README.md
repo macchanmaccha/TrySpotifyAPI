@@ -22,7 +22,7 @@ Spotify Web API を使った再生まわりの検証用 SwiftUI アプリです�
 
 ## 関連プロジェクト
 
-- [MeditationJourney](https://github.com/CodeCandySchool/MeditationJourney_may)
+- [Breath Trip](https://github.com/CodeCandySchool/MeditationJourney_may)
 - [TryAppleMusicAPI](https://github.com/CodeCandySchool/TryAppleMusicAPI_may)
 
 ## 補足
