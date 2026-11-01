@@ -61,7 +61,7 @@ struct ContentView: View {
             // isLoadingがtrueなら
             if isLoading {
                 // ローディング中
-                ProgressView("Loading...")
+//                ProgressView("Loading...")
                 // falseなら
             } else {
                 Picker("再生時間を選択", selection: $selectedTime) {
@@ -117,7 +117,7 @@ struct ContentView: View {
                     isLoading = false
                     // 失敗のプリント
                     print("previewUrlの取得に失敗")
-                }
+                } // catch
             } // Task
         } // .onAppear
         .onChange(of: selectedTime) {

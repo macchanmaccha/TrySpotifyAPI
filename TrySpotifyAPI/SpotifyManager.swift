@@ -10,10 +10,6 @@ import Foundation
 class SpotifyManager: ObservableObject {
     // アクセストークン
     @Published var accessToken: String?
-    // クライアントID
-    let clientId = "cbec81689a284bc097930f139199ac2e"
-    //　クライアントシークレット
-    let clientSecret = "8d8203a29c8c41588d05fcc356340b7d"
     // アクセストークンの有効期限
     var expirationDate: Date? {
         // UserDefaultsから値を取り出しDate型へ
